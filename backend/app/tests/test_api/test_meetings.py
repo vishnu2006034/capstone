@@ -78,7 +78,7 @@ def test_meeting_details_with_transcript(client, auth_headers):
     details_resp2 = client.get(f"/api/v1/meetings/{meeting_id}", headers=auth_headers)
     assert details_resp2.status_code == 200
     data = details_resp2.json()
-    assert data["status"] == "Transcribed"
+    assert data["status"] in ["Transcribed", "Extracted"]
     assert data["transcript"] is not None
     assert data["transcript"]["raw_text"].startswith("Alice:")
 

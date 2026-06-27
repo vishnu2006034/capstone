@@ -831,7 +831,7 @@ export default function App() {
 
               {/* Tasks Layout container */}
               <div className="flex flex-col lg:flex-row gap-6 items-start">
-                <div className="flex-1 w-full space-y-3">
+                <div className="flex-1 min-w-0 space-y-3">
                   {tasks.length === 0 ? (
                     <div className="bg-dark-900 border border-dark-800 rounded-xl p-12 text-center text-dark-400">
                       <CheckSquare className="h-10 w-10 text-dark-600 mx-auto mb-2" />
@@ -872,7 +872,7 @@ export default function App() {
 
                 {/* Right: Comments / Details Sidebar Drawer */}
                 {selectedTask && (
-                  <div className="w-full lg:w-96 bg-dark-900 border border-dark-800 rounded-xl p-5 space-y-5 sticky top-6">
+                  <div className="w-full lg:w-96 shrink-0 bg-dark-900 border border-dark-800 rounded-xl p-5 space-y-5 sticky top-6">
                     <div className="border-b border-dark-800 pb-3">
                       <h3 className="text-xs font-bold text-white">{selectedTask.title}</h3>
                       <div className="flex flex-wrap items-center gap-2 mt-2">

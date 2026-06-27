@@ -34,6 +34,7 @@ class MeetingOut(BaseModel):
     duration_seconds: Optional[int] = None
     created_at: datetime
     updated_at: datetime
+    transcript: Optional[TranscriptOut] = None
 
     class Config:
         from_attributes = True

@@ -1,0 +1,28 @@
+# Environment variables containing secrets
+.env
+*.env
+backend/.env
+
+# Databases
+*.db
+*.sqlite
+backend/test.db
+backend/meeting2execution.db
+
+# Python cache
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Node modules & build outputs
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
