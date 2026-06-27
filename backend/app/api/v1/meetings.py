@@ -7,6 +7,8 @@ from app.api.dependencies import get_current_user
 from app.models.models import Meeting, Transcript, User
 from app.schemas.meeting import MeetingCreate, MeetingUpdate, MeetingOut, MeetingDetailOut, TranscriptOut
 from app.core.events import trigger_meeting_uploaded
+from app.core.security_guards import sanitize_and_guard_prompt
+from app.core.audit import log_audit_event
 
 router = APIRouter(prefix="/meetings", tags=["Meetings"])
 
@@ -137,6 +139,17 @@ def upload_transcript(
     if not meeting:
         raise EntityNotFoundError(message=f"Meeting not found: {meeting_id}")
 
+    # Validate file size (1MB maximum limit)
+    if len(raw_text) > 1024 * 1024:
+        raise AppException(
+            code="FILE_SIZE_LIMIT_EXCEEDED",
+            message="Transcript text size exceeds maximum permitted limit (1MB).",
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Sanitize and check for prompt injection
+    sanitize_and_guard_prompt(raw_text)
+
     # Check if a transcript already exists for this meeting
     existing_transcript = db.query(Transcript).filter(Transcript.meeting_id == meeting_uuid).first()
     if existing_transcript:
@@ -154,6 +167,9 @@ def upload_transcript(
     db.add(meeting)
     
     db.commit()
+    
+    # Audit log transcript upload
+    log_audit_event(db, "MEETING_TRANSCRIPT_UPLOAD", {"meeting_id": str(meeting.id)}, current_user.id)
     
     # Trigger Ambient Workflow (MIA & Compliance check in background)
     trigger_meeting_uploaded(meeting.id, db, background_tasks)

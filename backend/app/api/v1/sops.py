@@ -11,6 +11,7 @@ from app.core.exceptions import EntityNotFoundError, AppException
 from app.api.dependencies import get_current_user
 from app.models.models import SOPDocument, SOPSection, User
 from app.schemas.sop import SOPCreate, SOPOut, SOPDetailOut
+from app.core.audit import log_audit_event
 
 router = APIRouter(prefix="/sops", tags=["Standard Operating Procedures (SOP)"])
 
@@ -59,6 +60,9 @@ def create_sop(
 
     db.commit()
     db.refresh(new_doc)
+    
+    # Audit log SOP upload
+    log_audit_event(db, "SOP_UPLOADED", {"sop_id": str(new_doc.id), "title": new_doc.title}, current_user.id)
     
     # Trigger Ambient Re-audit for this department
     trigger_sop_uploaded(new_doc.id, db, background_tasks)

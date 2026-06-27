@@ -12,6 +12,7 @@ from app.core.security import (
 from app.api.dependencies import get_current_user
 from app.models.models import User
 from app.schemas.auth import UserRegister, UserLogin, Token, TokenRefreshRequest, UserOut
+from app.core.audit import log_audit_event
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -41,6 +42,10 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    
+    # Audit log user registration
+    log_audit_event(db, "USER_REGISTER", {"email": new_user.email}, new_user.id)
+    
     return new_user
 
 @router.post("/login", response_model=Token)
@@ -65,6 +70,9 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
         
     access = create_access_token(subject=user.id, role=user.role, email=user.email)
     refresh = create_refresh_token(subject=user.id, role=user.role, email=user.email)
+    
+    # Audit log user login
+    log_audit_event(db, "USER_LOGIN", {"email": user.email}, user.id)
     
     return {
         "access_token": access,

@@ -13,11 +13,15 @@ from app.core.exceptions import (
 # Initialize structured logging
 setup_logging(settings.LOG_LEVEL)
 
-# Boot FastAPI app
+from fastapi import Depends
+from app.core.security_guards import rate_limit_guard
+
+# Boot FastAPI app with global rate limiting dependency
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Enterprise Meeting-to-Execution agent pipeline.",
-    version="0.1.0"
+    version="0.1.0",
+    dependencies=[Depends(rate_limit_guard)]
 )
 
 # Register routers
