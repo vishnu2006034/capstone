@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import app.core.antigravity_mock  # Load Google ADK namespace mock
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.core.middleware import RequestLoggingMiddleware
