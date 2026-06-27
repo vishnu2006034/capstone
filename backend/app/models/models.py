@@ -138,6 +138,10 @@ class ComplianceReport(Base, TimestampMixin):
     task_id = Column(UUID(as_uuid=True), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False, index=True)
     status = Column(String(50), nullable=False, default="PASSED")  # PASSED, WARNING, FAILED
     reasoning_trace = Column(Text, nullable=True)
+    checklist = Column(JSON, nullable=True)  # List of items with pass/fail statuses
+    missing_steps = Column(JSON, nullable=True)  # List of missing requirements
+    compliance_score = Column(Integer, nullable=True)  # Numeric score (0-100)
+    risk_level = Column(String(50), nullable=True)  # LOW, MEDIUM, HIGH, CRITICAL
 
     # Relationships
     task = relationship("Task", back_populates="compliance_reports")
