@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     JIRA_USER_EMAIL: str = "user@company.com"
     JIRA_API_TOKEN: str = "placeholder_token"
     SLACK_WEBHOOK_URL: str = "https://hooks.slack.com/services/xxx/yyy/zzz"
+    
+    # SMTP Email Configuration
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_TLS: bool = True
 
     class Config:
         env_file = ".env"
