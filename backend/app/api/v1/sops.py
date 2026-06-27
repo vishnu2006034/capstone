@@ -1,9 +1,10 @@
 import uuid
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
+from app.core.events import trigger_sop_uploaded
 
 from app.core.database import get_db
 from app.core.exceptions import EntityNotFoundError, AppException
@@ -16,6 +17,7 @@ router = APIRouter(prefix="/sops", tags=["Standard Operating Procedures (SOP)"])
 @router.post("", response_model=SOPDetailOut, status_code=status.HTTP_201_CREATED)
 def create_sop(
     sop_in: SOPCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -57,6 +59,10 @@ def create_sop(
 
     db.commit()
     db.refresh(new_doc)
+    
+    # Trigger Ambient Re-audit for this department
+    trigger_sop_uploaded(new_doc.id, db, background_tasks)
+    
     return new_doc
 
 @router.get("", response_model=List[SOPOut])

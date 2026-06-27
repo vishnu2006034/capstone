@@ -1,11 +1,12 @@
 from typing import List
-from fastapi import APIRouter, Depends, status, Body
+from fastapi import APIRouter, Depends, status, Body, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.exceptions import EntityNotFoundError, AppException
 from app.api.dependencies import get_current_user
 from app.models.models import Meeting, Transcript, User
 from app.schemas.meeting import MeetingCreate, MeetingUpdate, MeetingOut, MeetingDetailOut, TranscriptOut
+from app.core.events import trigger_meeting_uploaded
 
 router = APIRouter(prefix="/meetings", tags=["Meetings"])
 
@@ -117,6 +118,7 @@ def delete_meeting(
 @router.post("/{meeting_id}/upload-transcript", response_model=TranscriptOut)
 def upload_transcript(
     meeting_id: str,
+    background_tasks: BackgroundTasks,
     raw_text: str = Body(..., embed=True),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -153,6 +155,9 @@ def upload_transcript(
     
     db.commit()
     
+    # Trigger Ambient Workflow (MIA & Compliance check in background)
+    trigger_meeting_uploaded(meeting.id, db, background_tasks)
+
     # Reload and return transcript
     transcript = db.query(Transcript).filter(Transcript.meeting_id == meeting_uuid).first()
     return transcript

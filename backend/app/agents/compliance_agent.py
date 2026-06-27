@@ -117,6 +117,12 @@ async def audit_task_against_sop(task_id: UUID, sop_id: UUID, db: Session) -> Co
             
         db.commit()
         db.refresh(report)
+        
+        # Trigger Ambient Violation alert if audit fails
+        if report.status == "FAILED":
+            from app.core.events import trigger_compliance_violation
+            trigger_compliance_violation(report.id, db)
+            
         logger.info(f"Audited task {task_id}. Score: {audit_data.compliance_score}, Status: {audit_data.status}")
         
     return report

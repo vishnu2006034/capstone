@@ -11,6 +11,7 @@ from app.core.exceptions import EntityNotFoundError, AppException
 from app.api.dependencies import get_current_user
 from app.models.models import Task, TaskAssignment, TaskComment, User, Meeting
 from app.schemas.task import TaskCreate, TaskUpdate, TaskOut, CommentCreate, CommentOut
+from app.core.events import trigger_task_assigned, trigger_task_completed
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 logger = logging.getLogger("app.api.v1.tasks")
@@ -52,6 +53,10 @@ def create_task(
     db.commit()
     db.refresh(new_task)
     
+    # Trigger TASK_ASSIGNED alerts
+    for assignment in new_task.assignments:
+        trigger_task_assigned(new_task.id, assignment.user_id, db)
+        
     # Build assignees list for schema serialization
     task_out = TaskOut.model_validate(new_task)
     task_out.assignees = [a.assignee for a in new_task.assignments]
@@ -151,6 +156,7 @@ def update_task(
     if not task:
         raise EntityNotFoundError(message=f"Task not found: {task_id}")
         
+    old_status = task.status
     update_data = task_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(task, field, value)
@@ -158,6 +164,10 @@ def update_task(
     db.commit()
     db.refresh(task)
     
+    # Trigger TASK_COMPLETED alert
+    if old_status != "Done" and task.status == "Done":
+        trigger_task_completed(task.id, db)
+        
     task_out = TaskOut.model_validate(task)
     task_out.assignees = [a.assignee for a in task.assignments]
     task_out.comments = [CommentOut.model_validate(c) for c in task.comments]
@@ -227,6 +237,10 @@ def assign_task(
     db.commit()
     db.refresh(task)
     
+    # Trigger TASK_ASSIGNED alerts
+    for a in task.assignments:
+        trigger_task_assigned(task.id, a.user_id, db)
+        
     task_out = TaskOut.model_validate(task)
     task_out.assignees = [a.assignee for a in task.assignments]
     task_out.comments = [CommentOut.model_validate(c) for c in task.comments]
