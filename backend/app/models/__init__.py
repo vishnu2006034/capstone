@@ -9,5 +9,6 @@ from app.models.models import (
     ComplianceReport,
     Notification,
     AuditLog,
-    Transcript
+    Transcript,
+    TaskComment
 )

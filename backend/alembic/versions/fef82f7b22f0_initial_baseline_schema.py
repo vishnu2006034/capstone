@@ -125,6 +125,23 @@ def upgrade() -> None:
     op.create_index(op.f('ix_task_assignments_task_id'), 'task_assignments', ['task_id'], unique=False)
     op.create_index(op.f('ix_task_assignments_user_id'), 'task_assignments', ['user_id'], unique=False)
 
+    # 5.5 task_comments
+    op.create_table(
+        'task_comments',
+        sa.Column('id', sa.UUID(as_uuid=True), nullable=False),
+        sa.Column('task_id', sa.UUID(as_uuid=True), nullable=False),
+        sa.Column('user_id', sa.UUID(as_uuid=True), nullable=False),
+        sa.Column('content', sa.Text(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_task_comments_id'), 'task_comments', ['id'], unique=False)
+    op.create_index(op.f('ix_task_comments_task_id'), 'task_comments', ['task_id'], unique=False)
+    op.create_index(op.f('ix_task_comments_user_id'), 'task_comments', ['user_id'], unique=False)
+
     # 6. sop_documents
     op.create_table(
         'sop_documents',
@@ -216,6 +233,7 @@ def downgrade() -> None:
     op.drop_table('sop_sections')
     op.drop_table('sop_documents')
     op.drop_table('task_assignments')
+    op.drop_table('task_comments')
     op.drop_table('tasks')
     op.drop_table('meeting_participants')
     op.drop_table('transcripts')

@@ -87,6 +87,7 @@ class Task(Base, TimestampMixin):
     meeting = relationship("Meeting", back_populates="tasks")
     assignments = relationship("TaskAssignment", back_populates="task", cascade="all, delete-orphan")
     compliance_reports = relationship("ComplianceReport", back_populates="task", cascade="all, delete-orphan")
+    comments = relationship("TaskComment", back_populates="task", cascade="all, delete-orphan")
 
 
 class TaskAssignment(Base, TimestampMixin):
@@ -165,3 +166,16 @@ class AuditLog(Base, TimestampMixin):
 
     # Relationships
     user = relationship("User", back_populates="audit_logs")
+
+
+class TaskComment(Base, TimestampMixin):
+    __tablename__ = "task_comments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    task_id = Column(UUID(as_uuid=True), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    content = Column(Text, nullable=False)
+
+    # Relationships
+    task = relationship("Task", back_populates="comments")
+    author = relationship("User")
