@@ -17,6 +17,7 @@ class User(Base, TimestampMixin):
     email = Column(String(255), nullable=False, unique=True, index=True)
     role = Column(String(50), nullable=False, default="Developer")  # Manager, Developer, Auditor, Admin
     active_directory_id = Column(String(255), nullable=True, unique=True, index=True)
+    hashed_password = Column(String(255), nullable=True)
 
     # Relationships
     meetings_uploaded = relationship("Meeting", back_populates="uploader", cascade="all, delete-orphan")
