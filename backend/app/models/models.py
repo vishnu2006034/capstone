@@ -42,6 +42,19 @@ class Meeting(Base, TimestampMixin):
     uploader = relationship("User", back_populates="meetings_uploaded")
     participants = relationship("MeetingParticipant", back_populates="meeting", cascade="all, delete-orphan")
     tasks = relationship("Task", back_populates="meeting", cascade="all, delete-orphan")
+    transcript = relationship("Transcript", back_populates="meeting", uselist=False, cascade="all, delete-orphan")
+
+
+class Transcript(Base, TimestampMixin):
+    __tablename__ = "transcripts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    meeting_id = Column(UUID(as_uuid=True), ForeignKey("meetings.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    raw_text = Column(Text, nullable=False)
+    diarized_conversations = Column(JSON, nullable=True)
+
+    # Relationships
+    meeting = relationship("Meeting", back_populates="transcript")
 
 
 class MeetingParticipant(Base, TimestampMixin):

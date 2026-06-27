@@ -55,6 +55,22 @@ def upgrade() -> None:
     op.create_index(op.f('ix_meetings_id'), 'meetings', ['id'], unique=False)
     op.create_index(op.f('ix_meetings_uploaded_by'), 'meetings', ['uploaded_by'], unique=False)
 
+    # 2.5 transcripts
+    op.create_table(
+        'transcripts',
+        sa.Column('id', sa.UUID(as_uuid=True), nullable=False),
+        sa.Column('meeting_id', sa.UUID(as_uuid=True), nullable=False),
+        sa.Column('raw_text', sa.Text(), nullable=False),
+        sa.Column('diarized_conversations', sa.JSON(), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.ForeignKeyConstraint(['meeting_id'], ['meetings.id'], ondelete='CASCADE'),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('meeting_id')
+    )
+    op.create_index(op.f('ix_transcripts_id'), 'transcripts', ['id'], unique=False)
+    op.create_index(op.f('ix_transcripts_meeting_id'), 'transcripts', ['meeting_id'], unique=True)
+
     # 3. meeting_participants
     op.create_table(
         'meeting_participants',
@@ -202,5 +218,6 @@ def downgrade() -> None:
     op.drop_table('task_assignments')
     op.drop_table('tasks')
     op.drop_table('meeting_participants')
+    op.drop_table('transcripts')
     op.drop_table('meetings')
     op.drop_table('users')

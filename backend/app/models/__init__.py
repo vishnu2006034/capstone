@@ -8,5 +8,6 @@ from app.models.models import (
     SOPSection,
     ComplianceReport,
     Notification,
-    AuditLog
+    AuditLog,
+    Transcript
 )
